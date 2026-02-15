@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import { SuccessResponse } from '../../common/utils/response/index.js';
-import { singup ,login} from './auth.service.js';
+import { singup ,login,get_user} from './auth.service.js';
 const router = Router();
 
 router.post('/signup', async(req,res)=>{
@@ -13,6 +13,9 @@ router.post('/login', async(req,res)=>{
     return SuccessResponse({res,message:"user logged in successfully",status:200,data:user})
 }) 
 
-
+router.get('/get-user',async(req,res)=>{
+    let user = await get_user(req.headers.token)
+    return SuccessResponse({res,message:"User Found", status:200, data:user})
+})
 
 export default router;

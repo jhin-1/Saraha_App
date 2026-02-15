@@ -3,24 +3,24 @@ import { GenderEnums ,ProviderEnums} from "../../common/index.js";
 const UserSchema = new mongoose.Schema({
     firstName:{
         type:String,
-        require:true,
+        required:true,
         minLenght:2,
         maxLength:20
     },
     lastName:{
         type:String,
-        require:true,
+        required:true,
         minLenght:2,
         maxLength:20
     },
     email:{
         type:String,
-        require:true,
+        required:true,
         unique:true
     },
     password:{
         type:String,
-        require:true
+        required:true
     },
     phone:String,
     DOB:Date,
