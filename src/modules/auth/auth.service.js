@@ -2,6 +2,7 @@ import { ProviderEnums } from '../../common/index.js';
 import { ConflictException,UnAuthorizedException } from '../../common/utils/response/index.js';
 import {UserModel} from '../../database/index.js';
 import { hashPassword, comparePassword } from '../../common/index.js';
+import {env} from '../../../config/index.js'
 import jwt from 'jsonwebtoken';
 
 export const singup = async(data)=>{
@@ -22,7 +23,7 @@ export const login = async(data)=>{
     // get user by email
     let userexist = await UserModel.findOne({email, provider:ProviderEnums.System}).select(" -__v"); 
 
-    let user_token = jwt.sign({id:userexist._id},"secretkey") // generate token with user id and secret key
+    let user_token = jwt.sign({id:userexist._id},env.JWT_KEY) // generate token with user id and secret key
     
     if(!userexist){
         return ConflictException({message:"email or password is incorrect"});
