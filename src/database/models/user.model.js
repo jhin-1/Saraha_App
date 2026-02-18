@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { GenderEnums ,ProviderEnums} from "../../common/index.js";
+import { GenderEnums ,ProviderEnums, RoleEnums} from "../../common/index.js";
 const UserSchema = new mongoose.Schema({
     firstName:{
         type:String,
@@ -33,6 +33,11 @@ const UserSchema = new mongoose.Schema({
         type:String,
         enum:Object.values(ProviderEnums), // convert the object to array of values
         default:ProviderEnums.System
+    },
+    role:{
+        type:String,
+        enum:Object.values(RoleEnums),
+        default:RoleEnums.User
     }
 })
 
