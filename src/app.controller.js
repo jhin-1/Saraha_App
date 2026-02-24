@@ -3,12 +3,14 @@ import {env} from '../config/index.js';
 import {DataBaseConnection} from './database/index.js';
 import { globalErrorHandler } from './common/utils/response/index.js';
 import authRouter from './modules/auth/auth.controller.js';
+import cors from 'cors';
 
 export const bootstrap = async ()=>{
     const app = express();
     const port = env.PORT
 
     app.use(express.json());
+    app.use(cors())
     // routes
     app.use('/api/v1/auth',authRouter);
     

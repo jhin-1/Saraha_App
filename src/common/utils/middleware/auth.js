@@ -1,24 +1,27 @@
 import { UnAuthorizedException } from "../response/index.js";
-import {env} from '../../../../config/index.js'
 import jwt from 'jsonwebtoken';
+import { decodeToken } from "../../index.js";
+
 
 
 export const auth =(req,res,next)=>{
-    let {token} = req.headers;
-    if(!token){
+    let {authorization} = req.headers;
+    if(!authorization){
         return UnAuthorizedException("Invalid Token")
     }
-    let decode = jwt.decode(token)
-    let Signature = undefined;
-    switch(decode.aud){
-        case"Admin":
-            Signature = env.ADMIN_SIGNATURE
+    const [flag,token] = authorization.split(' ')
+    switch(flag){
+        case"Basic":
+            let data = Buffer.from(token, "base64").toString()
+            console.log(data,"from data")
+            let [email,password] = data.split(":")
+            console.log(email,"  ",password)
             break;
-        default:
-            Signature = env.USER_SIGNATURE
-            break;
+        case"Bearer":
+            let decodeData = decodeToken(token) // funcation to decode the data 
+            req.userId = decodeData.id
+            next()
     }
-    let decodeData = jwt.verify(token,Signature)
-    req.userId = decodeData.id
-    next()
+    
+    
 }
