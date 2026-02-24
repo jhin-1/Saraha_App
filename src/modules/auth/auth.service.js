@@ -1,5 +1,5 @@
 import { generateToken, ProviderEnums } from '../../common/index.js';
-import { ConflictException,NotFoundException,UnAuthorizedException } from '../../common/utils/response/index.js';
+import { BadRequestException, ConflictException,NotFoundException,UnAuthorizedException } from '../../common/utils/response/index.js';
 import {UserModel} from '../../database/index.js';
 import { hashPassword, comparePassword,decodeRefreshToken } from '../../common/index.js';
 import { env } from '../../../config/index.js';
@@ -64,14 +64,32 @@ export const generateAccessToken = async(token)=>{
     return accessToken
 }
 
-export const singupGoogle = async(data)=>{
+export const singupGoogle = async(token)=>{
     console.log(data);
     const client = new OAuth2Client();
     const ticket = await client.verifyIdToken({
-      idToken: data.idToken,
+      idToken: token.idToken,
       audience: WEB_CLIENT_ID,   
     });
     const payload = ticket.getPayload();
     console.log(payload)
+    if(!payload.email_verified){
+        throw BadRequestException({message:"email is not verified"})
+    }
+    let exsistUser = await UserModel.findOne({email:payload.email_verified})
+    if(exsistUser){
+        throw ConflictException({message:"User already exsit"})
+    }else{
+        let adduser = await UserModel.create({
+            userName:payload.name,
+            email:payload.email
+        })
+        if(adduser){
+            return adduser
+        }else{
+            throw BadRequestException({message:"Something went wrong"})
+        }
+    }
+
   
 }

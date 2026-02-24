@@ -29,5 +29,6 @@ router.get('/generate-access-Token',async(req,res)=>{
 
 router.post('/signup/gmail',async(req,res)=>{
     const data = await singupGoogle(req.body)
+    return SuccessResponse({res,message:"user signup succesfully",status:200,data:data})
 })
 export default router;
