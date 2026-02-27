@@ -45,7 +45,6 @@ export const get_user = async(userid)=>{
     return user
 }
 
-
 export const generateAccessToken = async(token)=>{
     let decodeData = decodeRefreshToken(token)
     let Signature = undefined;
@@ -82,7 +81,8 @@ export const singupGoogle = async(token)=>{
     }else{
         let adduser = await UserModel.create({
             userName:payload.name,
-            email:payload.email
+            email:payload.email,
+            provider:ProviderEnums.Google
         })
         if(adduser){
             return adduser

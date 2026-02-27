@@ -6,8 +6,6 @@ export const ErorrResponse = ({ status = 400, message = "SomeThing went wrong", 
 }
 
 export const BadRequestException = ({ message = "Bad Request Exception", extra = undefined }) => {
-    console.log(extra, "from error.responce");
-
     return ErorrResponse({
         status: 400,
         message,
@@ -45,8 +43,6 @@ export const globalErrorHandler = (error, req, res, next) => {
     const defaultMessage = 'Something went wrong';
     const displayMessage = error.message || defaultMessage;
     const extra = error.extra || {};
-    console.log({ error });
-
     res.status(status).json({
         status:status,
         stack: mood ? error.stack : null,

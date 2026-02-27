@@ -3,7 +3,7 @@ import { SuccessResponse } from '../../common/utils/response/index.js';
 import { singup ,login,get_user,generateAccessToken, singupGoogle} from './auth.service.js';
 import { auth } from '../../common/utils/middleware/auth.js';
 import {singupSchema , loginSchema } from './auth.validation.js';
-import {validation} from '../../common/utils/validation.js'
+import {validation} from '../../common/utils/middleware/validation.js'
 const router = Router();
 
 router.post('/signup', validation(singupSchema) , async(req,res)=>{
