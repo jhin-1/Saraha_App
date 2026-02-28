@@ -1,9 +1,9 @@
 import {Router} from 'express';
 import { SuccessResponse } from '../../common/utils/response/index.js';
-import { singup ,login,get_user,generateAccessToken, singupGoogle} from './auth.service.js';
-import { auth } from '../../common/utils/middleware/auth.js';
+import { singup ,login,get_user,generateAccessToken, singupGoogle, get_profile} from './auth.service.js';
+import { auth } from '../../common/middleware/auth.js';
 import {singupSchema , loginSchema } from './auth.validation.js';
-import {validation} from '../../common/utils/middleware/validation.js'
+import {validation} from '../../common/middleware/validation.js'
 const router = Router();
 
 router.post('/signup', validation(singupSchema) , async(req,res)=>{
@@ -19,6 +19,11 @@ router.post('/login', validation(loginSchema) , async(req,res)=>{
 router.get('/get-user',auth,async(req,res)=>{
     let user = await get_user(req.userId)
     return SuccessResponse({res,message:"User Found", status:200, data:user})
+})
+
+router.get('/user-profile/:id',async(req,res)=>{
+    let UserProfile = await get_profile(req.params.id)
+    return SuccessResponse({res,message:"User Profile Found", status:200, data:UserProfile})
 })
 
 router.get('/generate-access-Token',async(req,res)=>{

@@ -29,7 +29,6 @@ export const login = async(data,host)=>{
         const isMatch = await comparePassword(password,userexist.password);
         if(isMatch){
             let {accessToken,RefreshToken} = generateToken(userexist,host)
-            console.log(RefreshToken)
             return {accessToken,RefreshToken,user:userexist};
         }
     }
@@ -43,6 +42,16 @@ export const get_user = async(userid)=>{
         return UnAuthorizedException()
     }
     return user
+}
+
+export const get_profile = async(userId)=>{
+    let userProfile = await UserModel.findById(userId).select("-password -__v -gender -role -provider")
+    if(!userProfile){
+        return NotFoundException({message:"User not found"})
+    }
+    userProfile.Visits += 1;
+    await userProfile.save();
+    return userProfile;
 }
 
 export const generateAccessToken = async(token)=>{
