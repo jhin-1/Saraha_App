@@ -45,7 +45,7 @@ export const get_user = async(userid)=>{
 }
 
 export const get_profile = async(userId)=>{
-    let userProfile = await UserModel.findById(userId).select("-password -__v -gender -role -provider")
+    let userProfile = await UserModel.findById(userId).select("-password -__v -gender -role -provider") 
     if(!userProfile){
         return NotFoundException({message:"User not found"})
     }

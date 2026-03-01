@@ -23,7 +23,7 @@ router.get('/get-user',auth,async(req,res)=>{
 
 router.get('/user-profile/:id',async(req,res)=>{
     let UserProfile = await get_profile(req.params.id)
-    return SuccessResponse({res,message:"User Profile Found", status:200, data:UserProfile})
+    return SuccessResponse({res, message:"User Profile Found", status:200, data:UserProfile})
 })
 
 router.get('/generate-access-Token',async(req,res)=>{
