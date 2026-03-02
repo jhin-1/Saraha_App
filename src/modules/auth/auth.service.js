@@ -20,21 +20,42 @@ export const singup = async(data)=>{
 
 }
 
-export const login = async(data,host)=>{
-    // destarct the Data from the object prameter 
-    let {email,password} = data;
-    // get user by email
-    let userexist = await UserModel.findOne({email, provider:ProviderEnums.System}).select(" -__v");
-    if(userexist){
-        const isMatch = await comparePassword(password,userexist.password);
-        if(isMatch){
-            let {accessToken,RefreshToken} = generateToken(userexist,host)
-            return {accessToken,RefreshToken,user:userexist};
-        }
+export const login = async (data, host) => {
+    let { email, password } = data;
+
+    let userexist = await UserModel.findOne({email,provider: ProviderEnums.System}).select("-__v");
+
+    if (!userexist) {
+        return UnAuthorizedException({ message: "Unauthorized" });
     }
-    return UnAuthorizedException({message:"Unauthorized"})
-    
-}
+
+    if (userexist.BlockTime && userexist.BlockTime > Date.now()) {
+        return UnAuthorizedException({message: "Account Blocked. Try again after 5 minutes."});
+    }
+
+    const isMatch = await comparePassword(password, userexist.password);
+
+    if (!isMatch) {
+
+        userexist.consecutive_times += 1;
+
+        if (userexist.consecutive_times === 5) {
+            userexist.BlockTime = Date.now() + 5 * 60 * 1000;
+        }
+
+        await userexist.save();
+
+        return UnAuthorizedException({ message: "Unauthorized" });
+    }
+
+    userexist.consecutive_times = 0;
+    userexist.BlockTime = undefined;
+    await userexist.save();
+
+    let { accessToken, RefreshToken } = generateToken(userexist, host);
+
+    return { accessToken, RefreshToken, user: userexist };
+};
 
 export const get_user = async(userid)=>{
     let user = await UserModel.findById(userid).select('-password -__v')
@@ -72,33 +93,39 @@ export const generateAccessToken = async(token)=>{
     return accessToken
 }
 
-export const singupGoogle = async(token)=>{
-    console.log(data);
-    const client = new OAuth2Client();
+export const singupGoogle = async(token) => {
+    // token is expected to contain an idToken from the client
+    const client = new OAuth2Client(env.WEB_CLIENT_ID || env.GOOGLE_CLIENT_ID);
+
+    // verify the token and extract user information
     const ticket = await client.verifyIdToken({
-      idToken: token.idToken,
-      audience: WEB_CLIENT_ID,   
+         idToken: token.idToken,
+        audience: env.WEB_CLIENT_ID || env.GOOGLE_CLIENT_ID,
     });
+
     const payload = ticket.getPayload();
-    console.log(payload)
-    if(!payload.email_verified){
-        throw BadRequestException({message:"email is not verified"})
-    }
-    let exsistUser = await UserModel.findOne({email:payload.email_verified})
-    if(exsistUser){
-        throw ConflictException({message:"User already exsit"})
-    }else{
-        let adduser = await UserModel.create({
-            userName:payload.name,
-            email:payload.email,
-            provider:ProviderEnums.Google
-        })
-        if(adduser){
-            return adduser
-        }else{
-            throw BadRequestException({message:"Something went wrong"})
-        }
+
+    // Google returns a boolean field email_verified
+    if (!payload || !payload.email_verified) {
+        throw BadRequestException({ message: "Email is not verified" });
     }
 
-  
-}
+    // look for an existing user by email
+    let existUser = await UserModel.findOne({ email: payload.email });
+    if (existUser) {
+        throw ConflictException({ message: "User already exists" });
+    }
+
+    // create a new user record
+    let adduser = await UserModel.create({
+        userName: payload.name,
+        email: payload.email,
+        provider: ProviderEnums.Google,
+    });
+
+    if (!adduser) {
+        throw BadRequestException({ message: "Something went wrong" });
+    }
+
+    return adduser;
+};

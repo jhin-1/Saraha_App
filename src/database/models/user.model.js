@@ -38,7 +38,22 @@ const UserSchema = new mongoose.Schema({
         type:String,
         enum:Object.values(RoleEnums),
         default:RoleEnums.User
-    }
+    },
+    image_profile:{
+        type:String
+    },
+    Visits:{
+        type:Number,
+        default:0
+    },
+    consecutive_times:{
+        type:Number,
+        default:0
+    },
+    BlockTime:{
+        type:Date
+    }   
+
 })
 
 UserSchema.virtual("userName").set(function(value){
