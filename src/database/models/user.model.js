@@ -52,7 +52,11 @@ const UserSchema = new mongoose.Schema({
     },
     BlockTime:{
         type:Date
-    }   
+    },
+    emailVerified:{
+        type:Boolean,
+        default:false
+    }
 
 })
 
