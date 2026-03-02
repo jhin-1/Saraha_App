@@ -129,3 +129,14 @@ export const singupGoogle = async(token) => {
 
     return adduser;
 };
+
+export const update_password = async(userId,password)=>{
+    let hashpassword = await hashPassword(password);
+    let userexist = await UserModel.findById(userId)
+    if(!userexist){
+        return NotFoundException({message:"User not found"})
+    }
+    userexist.password = hashpassword;
+    await userexist.save();
+    return userexist;
+}

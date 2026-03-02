@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import { SuccessResponse } from '../../common/utils/response/index.js';
-import { singup ,login,get_user,generateAccessToken, singupGoogle, get_profile} from './auth.service.js';
+import { singup ,login,get_user,generateAccessToken, singupGoogle, get_profile, update_password} from './auth.service.js';
 import { auth } from '../../common/middleware/auth.js';
 import {singupSchema , loginSchema } from './auth.validation.js';
 import {validation} from '../../common/middleware/validation.js'
@@ -35,5 +35,12 @@ router.get('/generate-access-Token',async(req,res)=>{
 router.post('/signup/gmail',async(req,res)=>{
     const data = await singupGoogle(req.body)
     return SuccessResponse({res,message:"user signup succesfully",status:200,data:data})
+})
+
+router.patch('/update-password',auth,async(req,res)=>{
+    const {newPassword} = req.body;
+    console.log(req.userId)
+    const data = await update_password(req.userId,newPassword);
+    return SuccessResponse({res,message:"password updated successfully",status:200,data});
 })
 export default router;
