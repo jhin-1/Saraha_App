@@ -56,7 +56,10 @@ const UserSchema = new mongoose.Schema({
     emailVerified:{
         type:Boolean,
         default:false
-    }
+    },
+    verificationCode:{
+        type:String
+    },
 
 })
 

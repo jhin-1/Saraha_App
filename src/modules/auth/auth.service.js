@@ -5,7 +5,7 @@ import { hashPassword, comparePassword,decodeRefreshToken } from '../../common/i
 import { env } from '../../../config/index.js';
 import jwt from "jsonwebtoken";
 import {OAuth2Client} from 'google-auth-library'; 
-
+import { generateCode, sendEmail } from '../../common/utils/sendemail/sendemail.js';
 
 
 export const singup = async(data)=>{
@@ -139,4 +139,36 @@ export const update_password = async(userId,password)=>{
     userexist.password = hashpassword;
     await userexist.save();
     return userexist;
+}
+
+export const sendverificationEmail = async(userId,email)=>{
+    const user = await UserModel.findOne({ _id: userId, email });
+    if(!user){
+        return NotFoundException({message:"User not found"})
+    }
+    const code = generateCode();
+    user.verificationCode = code;
+    await user.save();
+    let  text = `Your verification code for Email is: ${code}`;
+    let subject = "Email Verification";
+    console.log("Email being sent to:", email);
+    await sendEmail(
+        email,
+        subject,
+        text
+    );
+    return { message: "Verification email sent successfully"};
+}
+
+export const step_2 = async(userId,code)=>{
+    const user = await UserModel.findById(userId);
+    if (!user){
+        return UnAuthorizedException({message:"unauthorized!!"})
+    }
+    if(user.verificationCode !== code){
+        return BadRequestException({message:"Invalid verification code"})
+    }
+    user.emailVerified = true;
+    await user.save();
+    return user.emailVerified;
 }
