@@ -1,6 +1,6 @@
-import { UnAuthorizedException } from "../response/index.js";
+import { UnAuthorizedException } from "../utils/response/index.js";
 import jwt from 'jsonwebtoken';
-import { decodeToken } from "../../index.js";
+import { decodeToken } from "../index.js";
 
 
 

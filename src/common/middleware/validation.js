@@ -1,4 +1,4 @@
-import { BadRequestException } from "../response/index.js";
+import { BadRequestException } from "../utils/response/index.js";
 
 export const validation = (schema)=>{
     return (req,res,next)=>{

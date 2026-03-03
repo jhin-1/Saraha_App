@@ -3,6 +3,7 @@ import {env} from '../config/index.js';
 import {DataBaseConnection} from './database/index.js';
 import { globalErrorHandler } from './common/utils/response/index.js';
 import authRouter from './modules/auth/auth.controller.js';
+import messageRouter from './modules/messages/message.controller.js';
 import cors from 'cors';
 
 export const bootstrap = async ()=>{
@@ -10,17 +11,20 @@ export const bootstrap = async ()=>{
     const port = env.PORT
 
     app.use(express.json());
+    app.use("/uploads",express.static("./uploads"))
     app.use(cors())
     // routes
     app.use('/api/v1/auth',authRouter);
+    app.use('/api/v1/message',messageRouter);
+    //database connection
+    await DataBaseConnection();
     
     app.use('{*dummy}',(req,res)=>res.status(404).json("Invalid route"));
 
     // handel erorr 
     app.use(globalErrorHandler);
 
-    //database connection
-    await DataBaseConnection();
+    
 
 
 

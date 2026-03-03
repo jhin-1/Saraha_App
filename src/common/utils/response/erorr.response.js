@@ -5,7 +5,7 @@ export const ErorrResponse = ({ status = 400, message = "SomeThing went wrong", 
 
 }
 
-export const BadRequestException = ({ message = "Bad Request Exception", extra = undefined }) => {
+export const BadRequestException = ({ message = "Bad Request Exception", extra = undefined } = {}) => { // هنا في مشكلة
     return ErorrResponse({
         status: 400,
         message,
@@ -38,16 +38,18 @@ export const UnAuthorizedException = ({ message = "UnAuthorized Exception", extr
 }
 
 export const globalErrorHandler = (error, req, res, next) => {
-    const status = error.status ? error.status : error.cause.status ? error.cause.status : 500;
+    // const status = error.status ? error.status : error.cause.status ? error.cause.status : 500;
+    const status = error?.cause?.status || error?.status || 500; 
     const mood = env.MOOD == "dev" // ture or false
     const defaultMessage = 'Something went wrong';
     const displayMessage = error.message || defaultMessage;
-    const extra = error.extra || {};
+    // const extra = error.cause.extra || {};
+    const extra = error?.cause?.extra || {};
     res.status(status).json({
-        status:status,
+        status:status,  
         stack: mood ? error.stack : null,
         erorrMessage: mood ? displayMessage : defaultMessage,
-        extra: error.cause.extra
-    })
+        extra: error?.cause?.extra || extra
+    }) 
 
 }
