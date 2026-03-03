@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import { SuccessResponse } from '../../common/utils/response/index.js';
-import { singup ,login,get_user,generateAccessToken, singupGoogle, get_profile, update_password, sendverificationEmail, step_2} from './auth.service.js';
+import { singup ,login,get_user,generateAccessToken, singupGoogle, get_profile, update_password, sendverificationEmail, step_2, step_1_forgetPassword, step_2_forgetPassword} from './auth.service.js';
 import { auth } from '../../common/middleware/auth.js';
 import {singupSchema , loginSchema } from './auth.validation.js';
 import {validation} from '../../common/middleware/validation.js'
@@ -54,4 +54,16 @@ router.post('/step2-VerifiedEmail',auth,async(req,res)=>{
     const data = await step_2(req.userId,code);
     return SuccessResponse({res,message:"Email verified successfully",status:200,data});
 })
+
+router.post('/step-1-forget-password',async(req,res)=>{
+    const user = await step_1_forgetPassword(req.body.email)
+    return SuccessResponse({res,message:"donee",status:200,data:null})
+})
+
+router.post('/step-2-forget-password',auth,async(req,res)=>{
+    const {code,newPassword} = req.body;
+    const data = await step_2_forgetPassword(req.userId,code,newPassword)
+    return SuccessResponse({res,message:"password updated successfully",status:200,data});
+}
+)
 export default router;

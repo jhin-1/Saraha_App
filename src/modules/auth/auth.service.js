@@ -172,3 +172,34 @@ export const step_2 = async(userId,code)=>{
     await user.save();
     return user.emailVerified;
 }
+
+export const step_1_forgetPassword = async(email)=>{
+    const user = await UserModel.findOne({email})
+    if(!user){
+        return NotFoundException({message:"not found email"})
+    }
+    let code = generateCode()
+    user.verificationCode = code
+    await user.save();
+    let subject = "forget password code"
+    let text = `your code is ${code}`
+        await sendEmail(
+            email,
+            subject,
+            text,
+        )
+    return {message:"done"}    
+}
+
+export const step_2_forgetPassword = async(userId,code,newPassword)=>{
+    const user = await UserModel.findById(userId).select("+password +email +userName")
+    if(!user){
+        return NotFoundException({message:"not found user"})
+    }
+    if(user.verificationCode !== code){
+        return BadRequestException({message:"Invalid verification code"})
+    }
+    user.password = await hashPassword(newPassword);
+    await user.save();
+    return user;
+}
