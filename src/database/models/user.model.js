@@ -60,6 +60,15 @@ const UserSchema = new mongoose.Schema({
     verificationCode:{
         type:String
     },
+    sharelinkProfile:{
+        type:String,
+        
+    },
+    towfa:{
+        type:Boolean,
+        default:false
+    }
+
 
 })
 
