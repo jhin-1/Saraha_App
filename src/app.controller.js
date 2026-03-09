@@ -4,6 +4,7 @@ import {DataBaseConnection} from './database/index.js';
 import { globalErrorHandler } from './common/utils/response/index.js';
 import authRouter from './modules/auth/auth.controller.js';
 import messageRouter from './modules/messages/message.controller.js';
+import userRouter from './modules/user/user.controller.js';
 import cors from 'cors';
 
 export const bootstrap = async ()=>{
@@ -11,11 +12,12 @@ export const bootstrap = async ()=>{
     const port = env.PORT
 
     app.use(express.json());
-    app.use("/uploads",express.static("./uploads"))
+    app.use("/upload",express.static("upload"))
     app.use(cors())
     // routes
     app.use('/api/v1/auth',authRouter);
     app.use('/api/v1/message',messageRouter);
+    app.use('/api/v1/users',userRouter);
     //database connection
     await DataBaseConnection();
     
