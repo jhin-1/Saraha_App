@@ -64,11 +64,6 @@ const UserSchema = new mongoose.Schema({
         type:String,
         
     },
-    towfa:{
-        type:Boolean,
-        default:false
-    }
-
 
 })
 
