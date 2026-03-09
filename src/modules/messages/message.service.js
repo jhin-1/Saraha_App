@@ -2,18 +2,22 @@ import { BadRequestException, ConflictException,NotFoundException,UnAuthorizedEx
 import { MessageModel, UserModel } from '../../database/index.js';
 
 
-export const SendMessage = async(data,reciverId)=>{
-    const {message,image} = data;
+export const SendMessage = async(data,reciverId,file)=>{
+    const {message} = data;
     let existUser = await UserModel.findById(reciverId);
     if(!existUser){
         return NotFoundException({message:"Reciver user not found"})
     }
+    let image_messaege;
+    if(file){
+        file.fullPath = `${file.destination}/${file.filename}`
+        image_messaege = file.fullPath
+    }
     const newMessage = await MessageModel.create({
         message,
-        image,
+        image: image_messaege? image_messaege : null,
         reciverId
-    }
-    )
+    })
     if(newMessage){
         return newMessage;
     }else{
