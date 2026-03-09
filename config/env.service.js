@@ -14,5 +14,6 @@ export const env = {
     USER_REFRESH_TOKEN: process.env.JWT_USER_REFRESH_SIGNATURE,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_PASS: process.env.EMAIL_PASS,
-    BASE_URL: process.env.BASE_URL
+    BASE_URL: process.env.BASE_URL,
+    REDIS_URI: process.env.REDIS_URI
 }
