@@ -1,15 +1,27 @@
 import { env } from "../../../config/index.js";
 import { BadRequestException } from "../../common/utils/response/index.js"
 import { UserModel } from "../../database/index.js";
+import { get, set, dele } from "../../database/redis/redis.service.js";
 
 
-
+let generateRedisKey = (userId)=>{
+    return `userProfile:${userId}`
+}
 
 export const get_profile =async(userId)=>{
+    let cachedProfile = await get(generateRedisKey(userId))
+    if(cachedProfile){
+        return cachedProfile
+    }
     const user = await UserModel.findById(userId).select("_id firstName lastName email sharelinkProfile image_profile")
     if(!user){
         BadRequestException({message:"user not found"})
     }
+    await set({
+        key:generateRedisKey(userId),
+        value:user,
+        ttl:60
+    })
     return user
 }
 
@@ -40,6 +52,7 @@ export const update_user = async(userId,data,file)=>{
     }
     let user_update = await UserModel.findByIdAndUpdate(userId,{...data,image_profile:image?image:null},{new:true})
     if(user_update){
+        await dele(generateRedisKey(userId))
         return user_update
     }
     BadRequestException({message:"user not found"})
