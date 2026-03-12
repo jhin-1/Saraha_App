@@ -9,13 +9,12 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async (to, subject, text) => {
+export const sendEmail = async (to, subject, html) => {
   const mailOptions = {
     from: env.EMAIL_USER,
     to,
     subject,
-    text,
-    html: `<p>${text}</p>`,
+    html,
   };
 
   try {
@@ -26,6 +25,3 @@ export const sendEmail = async (to, subject, text) => {
   }
 }
 
-export const generateCode = () => {
-    return Math.floor(1000 + Math.random() * 9000);
-};
