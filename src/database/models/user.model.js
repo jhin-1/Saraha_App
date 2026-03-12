@@ -57,9 +57,6 @@ const UserSchema = new mongoose.Schema({
         type:Boolean,
         default:false
     },
-    verificationCode:{
-        type:String
-    },
     sharelinkProfile:{
         type:String,
         
