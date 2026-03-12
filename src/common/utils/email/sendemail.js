@@ -9,19 +9,15 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async (to, subject, html) => {
-  const mailOptions = {
-    from: env.EMAIL_USER,
+
+export const sendEmail = async({to,subject,html})=>{
+  const info = await transporter.sendMail({
+    from: `"Ahmed Yosri" <${env.EMAIL_USER}>`, // sender address
     to,
     subject,
-    html,
-  };
-
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
-  } catch (error) {
-    console.error("Error sending email:", error);
+    html
+  })
+  console.log("Message sent: %s", info.messageId);
   }
-}
+
 
