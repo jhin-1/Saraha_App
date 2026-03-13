@@ -5,35 +5,63 @@ import { hashPassword, comparePassword,decodeRefreshToken } from '../../common/i
 import { env } from '../../../config/index.js';
 import jwt from "jsonwebtoken";
 import {OAuth2Client} from 'google-auth-library'; 
-import { generateCode, sendEmail } from '../../common/utils/sendemail/sendemail.js';
+
+import {set,get} from '../../database/redis/redis.service.js';
+import emailEvent from '../../common/utils/email/email.event.js';
 
 
-export const singup = async(data)=>{
+let code = Math.random().toFixed(4).split(".")[1]
+
+export const singup = async(data,file)=>{
     let {userName,email,password} = data;
+    let image = ""
+    if(file){
+        file.finalpath = `${file.destination}/${file.filename}`
+        image = file.finalpath
+    }
     let userexist = await UserModel.findOne({email});
     if(userexist){
         return ConflictException({message:"email already exist"});
     }
+    let profile_link = `${env.BASE_URL}${userName.split(" ").join("")+code}.com`
     let hashpassword = await hashPassword(password);
-    let user = await UserModel.create({userName,email,password:hashpassword});
+    let user = await UserModel.create({userName,email,password:hashpassword,image_profile:image?image:null,sharelinkProfile:profile_link});
+   // send verification email by event emitter to not take long time in response
+    emailEvent.emit("verifyEmail",{userId:user._id,email})
     return user;
+}
 
+export const verifyEmail = async(data)=>{
+    let {email,otp} = data
+    let user = await UserModel.findOne({email})
+    if(!user){
+        return NotFoundException({message:"email not found"})
+    }
+    let Otp = await get(`Otp::${user._id}`)
+    if(otp == Otp){
+        user.emailVerified = true;
+        await user.save();
+        return "email verified successfully"
+    }else{
+        return BadRequestException({message:"invalid otp"})
+    }
 }
 
 export const login = async (data, host) => {
     let { email, password } = data;
 
     let userexist = await UserModel.findOne({email,provider: ProviderEnums.System}).select("-__v");
-
     if (!userexist) {
-        return UnAuthorizedException({ message: "Unauthorized" });
+        return UnAuthorizedException({ message: "Unauthorized ---" });
     }
 
     if (userexist.BlockTime && userexist.BlockTime > Date.now()) {
         return UnAuthorizedException({message: "Account Blocked. Try again after 5 minutes."});
     }
-
+    
     const isMatch = await comparePassword(password, userexist.password);
+ 
+
 
     if (!isMatch) {
 
@@ -45,7 +73,7 @@ export const login = async (data, host) => {
 
         await userexist.save();
 
-        return UnAuthorizedException({ message: "Unauthorized" });
+        return UnAuthorizedException({ message: "Unauthorized---Password-" });
     }
 
     userexist.consecutive_times = 0;
@@ -57,6 +85,16 @@ export const login = async (data, host) => {
     return { accessToken, RefreshToken, user: userexist };
 };
 
+export const logout = async(req)=>{
+    let redis_key = `revokeToken:${req.userId}::${req.token}`;
+    await set({
+        key: redis_key,
+        value: 1 ,
+        ttl:req.decode.iat +30 *60
+    });
+
+}
+// api for test only
 export const get_user = async(userid)=>{
     let user = await UserModel.findById(userid).select('-password -__v')
     if(!user){
@@ -64,7 +102,7 @@ export const get_user = async(userid)=>{
     }
     return user
 }
-
+ // api for get user profile and add visit count
 export const get_profile = async(userId)=>{
     let userProfile = await UserModel.findById(userId).select("-password -__v -gender -role -provider") 
     if(!userProfile){
@@ -141,65 +179,32 @@ export const update_password = async(userId,password)=>{
     return userexist;
 }
 
-export const sendverificationEmail = async(userId,email)=>{
-    const user = await UserModel.findOne({ _id: userId, email });
-    if(!user){
-        return NotFoundException({message:"User not found"})
+export const forgetPassword = async(data)=>{
+    let {email} = data
+    console.log(email, "from auth service forget password")
+    let existeduser = await UserModel.findOne({email})
+    if(!existeduser){
+        BadRequestException({message:"user Not found"})
+    }else{
+        emailEvent.emit("forgetPassword",{userId:existeduser._id,email})
     }
-    const code = generateCode();
-    user.verificationCode = code;
-    await user.save();
-    let  text = `Your verification code for Email is: ${code}`;
-    let subject = "Email Verification";
-    console.log("Email being sent to:", email);
-    await sendEmail(
-        email,
-        subject,
-        text
-    );
-    return { message: "Verification email sent successfully"};
 }
 
-export const step_2 = async(userId,code)=>{
-    const user = await UserModel.findById(userId);
-    if (!user){
-        return UnAuthorizedException({message:"unauthorized!!"})
+export const restPassword = async(data)=>{
+    let {email,otp,password} = data
+    let existedUser = await UserModel.findOne({email})
+    if(!existedUser){
+        NotFoundException({message:"email not found"})
     }
-    if(user.verificationCode !== code){
-        return BadRequestException({message:"Invalid verification code"})
-    }
-    user.emailVerified = true;
-    await user.save();
-    return user.emailVerified;
-}
 
-export const step_1_forgetPassword = async(email)=>{
-    const user = await UserModel.findOne({email})
-    if(!user){
-        return NotFoundException({message:"not found email"})
+    let hashotp = await get(`otp::${existedUser._id}`)
+    if(await comparePassword(otp,hashotp)){
+        if(await comparePassword(password,existedUser.password)){
+            return BadRequestException({message:"new password must be different from old password"})
+        }else{
+            let hashpassword = await hashPassword(password);
+            let updatedUser = await UserModel.findByIdAndUpdate(existedUser._id,{password:hashpassword},{new:true}).select("-password -__v")
+            return updatedUser;
+        }
     }
-    let code = generateCode()
-    user.verificationCode = code
-    await user.save();
-    let subject = "forget password code"
-    let text = `your code is ${code}`
-        await sendEmail(
-            email,
-            subject,
-            text,
-        )
-    return {message:"done"}    
-}
-
-export const step_2_forgetPassword = async(userId,code,newPassword)=>{
-    const user = await UserModel.findById(userId).select("+password +email +userName")
-    if(!user){
-        return NotFoundException({message:"not found user"})
-    }
-    if(user.verificationCode !== code){
-        return BadRequestException({message:"Invalid verification code"})
-    }
-    user.password = await hashPassword(newPassword);
-    await user.save();
-    return user;
 }

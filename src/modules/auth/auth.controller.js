@@ -1,21 +1,32 @@
 import {Router} from 'express';
 import { SuccessResponse } from '../../common/utils/response/index.js';
-import { singup ,login,get_user,generateAccessToken, singupGoogle, get_profile, update_password, sendverificationEmail, step_2, step_1_forgetPassword, step_2_forgetPassword} from './auth.service.js';
+import { singup ,login,verifyEmail,get_user,generateAccessToken, singupGoogle, get_profile, update_password,logout, forgetPassword, restPassword} from './auth.service.js';
 import { auth } from '../../common/middleware/auth.js';
 import {singupSchema , loginSchema } from './auth.validation.js';
 import {validation} from '../../common/middleware/validation.js'
-import { sendEmail } from '../../common/utils/sendemail/sendemail.js';
+import { multer_local } from '../../common/middleware/multer.js';
 const router = Router();
 
-router.post('/signup', validation(singupSchema) , async(req,res)=>{
-    let user = await singup(req.body);
+router.post('/signup', validation(singupSchema),multer_local({customPath:"Profile_images"}).single("image") , async(req,res)=>{
+    let user = await singup(req.body,req.file);
+    console.log(req.file)
     return SuccessResponse({res,message:"user created successfully",status:201,data:user})
 }) 
+
+router.post('/verify-email',async(req,res)=>{
+    let data = await verifyEmail(req.body);
+    return SuccessResponse({res,message:"email verified successfully",status:200})
+})
 
 router.post('/login', validation(loginSchema) , async(req,res)=>{
     let user = await login(req.body,`${req.protocol}://${req.host}`);
     return SuccessResponse({res,message:"user logged in successfully",status:200,data:user})
-}) 
+})
+
+router.post("/logout",auth,async(req,res)=>{
+    await logout(req);
+    return SuccessResponse({res,message:"user logged out successfully",status:200})
+})
 
 router.get('/get-user',auth,async(req,res)=>{
     let user = await get_user(req.userId)
@@ -44,26 +55,12 @@ router.patch('/update-password',auth,async(req,res)=>{
     return SuccessResponse({res,message:"password updated successfully",status:200,data});
 })
 
-router.post('/step1-VerifiedEmail',auth,async(req,res)=>{
-    const data = await sendverificationEmail(req.userId,req.body.email);
-    return SuccessResponse({res,message:"Verification email sent successfully",status:200,data});
+router.post('/forget-password',async(req,res)=>{
+    await forgetPassword(req.body)
+    return SuccessResponse({res,message:"otp sent successfully",status:200})
 })
-
-router.post('/step2-VerifiedEmail',auth,async(req,res)=>{
-    const {code} = req.body;
-    const data = await step_2(req.userId,code);
-    return SuccessResponse({res,message:"Email verified successfully",status:200,data});
+router.patch('/rest-password',async(req,res)=>{
+    const data = await restPassword(req.body)
+    return SuccessResponse({res,message:"password rest successfully",status:200,data})
 })
-
-router.post('/step-1-forget-password',async(req,res)=>{
-    const user = await step_1_forgetPassword(req.body.email)
-    return SuccessResponse({res,message:"donee",status:200,data:null})
-})
-
-router.post('/step-2-forget-password',auth,async(req,res)=>{
-    const {code,newPassword} = req.body;
-    const data = await step_2_forgetPassword(req.userId,code,newPassword)
-    return SuccessResponse({res,message:"password updated successfully",status:200,data});
-}
-)
 export default router;

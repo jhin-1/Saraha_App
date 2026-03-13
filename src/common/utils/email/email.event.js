@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { sendEmail } from "./sendemail.js";
 import { set } from "../../../database/redis/redis.service.js";
+import { hashPassword } from "../../hash/hash.js";
 
 let code = Math.random().toFixed(4).split(".")[1]
 
