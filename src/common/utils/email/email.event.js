@@ -20,4 +20,17 @@ emailEvent.on("verifyEmail",async(data)=>{
             <p>Please Enter the code to verify your email.</p>`
         })
 })
+emailEvent.on("forgetPassword",async(data)=>{
+    let {email,userId} = data;
+    await set({
+                key:`otp::${userId}`,
+                value:await hashPassword(code),
+                ttl:60*10
+        })
+            await sendEmail({
+                to: email,
+                subject: "rest password",
+                html:`<h1>rest password<h1><br><p>${code}</p>`
+            })
+})
 export default emailEvent;
