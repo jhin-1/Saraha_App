@@ -32,3 +32,19 @@ export const GetMessages = async(userId)=>{
     }
     return messages;
 }
+
+export const getMessage = async(messageId,userId)=>{
+    let message = await MessageModel.findOne({_id:messageId,reciverId:userId});
+    if (!message) {
+        return NotFoundException({ message: "Message not found" });
+    }
+    return message;
+};
+
+export const deleteMessage = async(messageId,userId)=>{
+    let message = await MessageModel.findByIdAndDelete({_id:messageId,reciverId:userId});
+    if (!message) {
+        return NotFoundException({ message: "Message not found" });
+    }
+    return message;
+}
