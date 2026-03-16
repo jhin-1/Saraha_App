@@ -15,7 +15,9 @@ export const bootstrap = async ()=>{
 
     app.use(express.json());
     app.use("/upload",express.static("upload"))
-    app.use(cors())
+    app.use(cors({
+    origin: 'http://localhost:4200'
+    }))
 
     // routes
     app.use('/api/v1/auth',authRouter);
