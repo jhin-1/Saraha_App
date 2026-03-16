@@ -28,9 +28,10 @@ export const bootstrap = async ()=>{
     await DataBaseConnection();
     // connect to redis
     await connectRedis();
+    
+    app.use("/health", (req, res) => res.status(200).json({ message: "Server is healthy" }));
     // handel invalid route
     app.use('{*dummy}',(req,res)=>res.status(404).json("Invalid route"));
-
     // handel erorr 
     app.use(globalErrorHandler);
 
