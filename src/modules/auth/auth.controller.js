@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import { SuccessResponse } from '../../common/utils/response/index.js';
-import { singup ,login,verifyEmail,get_user,generateAccessToken, singupGoogle, get_profile, update_password,logout, forgetPassword, restPassword} from './auth.service.js';
+import { singup ,login,verifyEmail,get_user,generateAccessToken, singupGoogle, get_profile, update_password,logout, forgetPassword, restPassword, resendOtp} from './auth.service.js';
 import { auth } from '../../common/middleware/auth.js';
 import {singupSchema , loginSchema } from './auth.validation.js';
 import {validation} from '../../common/middleware/validation.js'
@@ -63,4 +63,8 @@ router.patch('/rest-password',async(req,res)=>{
     const data = await restPassword(req.body)
     return SuccessResponse({res,message:"password rest successfully",status:200,data})
 })
+router.post('/resend-otp',async(req,res)=>{
+    await resendOtp(req.body)
+    return SuccessResponse({res,message:"otp resent successfully",status:200})
+});
 export default router;

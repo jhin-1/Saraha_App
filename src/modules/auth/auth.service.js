@@ -208,3 +208,17 @@ export const restPassword = async(data)=>{
         }
     }
 }
+
+export const resendOtp = async(data)=>{
+    let {email} = data
+    let existedUser = await UserModel.findOne({email})
+    if(!existedUser){
+        return NotFoundException({message:"email not found"})
+    }
+    await set({
+        key:`Otp::${existedUser._id}`,
+        value:code,
+        ttl:60*5 // 5 minutes
+    })
+    emailEvent.emit("resendOtp",{userId:existedUser._id,email})
+}
