@@ -7,6 +7,7 @@ import messageRouter from './modules/messages/message.controller.js';
 import userRouter from './modules/user/user.controller.js';
 import { client, connectRedis } from './database/redis/connection.js';
 import cors from 'cors';
+import helmet from 'helmet';
 
 
 export const bootstrap = async ()=>{
@@ -18,6 +19,7 @@ export const bootstrap = async ()=>{
     app.use(cors({
     origin: 'http://localhost:4200'
     }))
+    app.use(helmet());
 
     // routes
     app.use('/api/v1/auth',authRouter);
