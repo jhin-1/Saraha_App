@@ -114,7 +114,9 @@ export const get_profile = async(userId)=>{
 }
 
 export const generateAccessToken = async(token)=>{
-    let decodeData = decodeRefreshToken(token)
+    let Toekn = token.split(" ")[1]
+    let decodeData = decodeRefreshToken(Toekn)
+    console.log("The request is used")
     let Signature = undefined;
     switch(decodeData.aud){
         case"Admin":

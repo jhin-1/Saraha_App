@@ -8,6 +8,7 @@ import userRouter from './modules/user/user.controller.js';
 import { client, connectRedis } from './database/redis/connection.js';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 
 export const bootstrap = async ()=>{
@@ -20,6 +21,12 @@ export const bootstrap = async ()=>{
     origin: 'http://localhost:4200'
     }))
     app.use(helmet());
+    const limiter = rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100 // limit each IP to 100 requests per windowMs
+    });
+    app.use(limiter);
+
 
     // routes
     app.use('/api/v1/auth',authRouter);
